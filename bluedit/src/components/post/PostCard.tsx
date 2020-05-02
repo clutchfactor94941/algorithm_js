@@ -13,31 +13,22 @@ import Vote, { VoteDirection } from '../../business/entities/Vote';
 type Props = {
 	post: Post;
 	commentCount:number;
+	voteDirection:number;
+	sendVote:(post:Post,v:Vote)=>void
 };
 
-const PostCard: FunctionComponent<Props> = ({ post,commentCount}) => {
-	const [vote,setVote]=useState(post.upVote-post.downVote);
-	const {token,profile}=useContext(UserContext)
-	const sendVote=(vote:Vote)=>{
-		fetch('/api/votes/post',{
-            method:'POST',
-            headers:{
-                'Authorization':token
-			},
-			body:JSON.stringify(vote)
-        }).then(async response=>{
-            return response.json();
-        }).then(p=>{
-            setVote((p.upVote)-(p.downVote));
-        });
-	}
+const PostCard: FunctionComponent<Props> = ({ post, commentCount, voteDirection, sendVote }) => {
 
+	const voteButtonUp = `up voteButton`;
+	const voteButtonDown = `down voteButton`;
+	const {profile}=useContext(UserContext)
+	
 	const upVote=()=>{
-		sendVote({oid:post.uid,direction:VoteDirection.UP,user:profile.uid})
+		sendVote(post,{oid:post.uid,direction:VoteDirection.UP,user:profile.uid})
 	}
 
 	const downVote=()=>{
-		sendVote({oid:post.uid,direction:VoteDirection.DOWN,user:profile.uid})
+		sendVote(post,{oid:post.uid,direction:VoteDirection.DOWN,user:profile.uid})
 	}
 
 	const copyFunc=()=>{
@@ -46,11 +37,11 @@ const PostCard: FunctionComponent<Props> = ({ post,commentCount}) => {
 	return (
 		<Card className={styles.post}>
 			<CardHeader>
-				<Button color="secondary" className={styles.voteButton}  onClick={upVote}>
+				<Button color="secondary" className={classNames(styles.voteButtonUp,voteDirection===VoteDirection.UP?styles.active:'')}  onClick={upVote}>
 					<FontAwesomeIcon icon={faArrowUp}/>
 				</Button>
-				<span>{vote}</span>
-				<Button color="secondary" className={styles.voteButton} onClick={downVote}>
+				<span>{post.upVote-post.downVote}</span>
+				<Button color="secondary" className={classNames(styles.voteButtonDown,voteDirection===VoteDirection.DOWN?styles.active:'')} onClick={downVote}>
 					<FontAwesomeIcon icon={faArrowDown} />
 				</Button>
 			</CardHeader>
